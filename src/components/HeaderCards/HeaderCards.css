@@ -1,0 +1,30 @@
+/* src/components/HeaderCards.css */
+
+.header-cards {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.header-cards .card {
+  flex: 1;
+  border-radius: 10px;
+  padding: 20px;
+  color: white;
+  font-weight: 600;
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+/* Ngjyrat sipas screenshotit */
+.header-cards .on-road {
+  background-color: #f1e289; /* Yellowish */
+}
+
+.header-cards .completed {
+  background-color: #70c050; /* Green */
+}
+
+.header-cards .on-hold {
+  background-color: #f44336; /* Red */
+}

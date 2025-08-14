@@ -1,0 +1,20 @@
+/* src/components/JobsiteTable.css */
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  color: white;
+}
+
+.badge-completed {
+  background-color: #4caf50;
+}
+
+.badge-hold {
+  background-color: #f44336;
+}
+
+.badge-progress {
+  background-color: #8bc34a;
+}
