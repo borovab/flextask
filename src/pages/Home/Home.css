@@ -1,26 +1,89 @@
-/* src/pages/Home.css */
+.create-button {
+  background-color: #4CAF50; /* Ngjyrë gjelbër pastel */
+  color: white;
+  border: none;
+  width: 150px;
+  height: 32px;
+  font-weight: 500;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 1;
+  transition: background-color 0.3s ease;
 
-.home-wrapper {
-  max-width: 1200px;
-  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+  box-shadow: none;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  user-select: none;
+  flex-shrink: 0; /* Mos e ngushto më shumë se 150px */
 }
 
+/* Vijë e hollë vertikale midis tekstit dhe ikonës */
+.create-button::after {
+  content: "";
+  display: inline-block;
+  width: 1px;
+  height: 18px;
+  background-color: rgba(255, 255, 255, 0.5);
+  margin-left: 8px;
+}
+
+/* Stil për ikonën + në të djathtë */
+.create-button span.plus-icon {
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 1;
+  user-select: none;
+  color: white;
+}
+
+.create-button:hover {
+  background-color: #45a049; /* Një hije pak më e errët në hover */
+}
+
+/* Search input i stilizuar */
+.search-input {
+  width: 350px;
+  height: 32px;
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  margin-left: 20px;
+  flex-shrink: 0; /* Mos e ngushto inputin */
+}
+
+/* Stilet për info-box dhe info-icon si në imazh */
 .info-box {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #6c757d;
+  gap: 6px;
   font-size: 14px;
+  color: #6c757d; /* gri i lehtë */
 }
 
 .info-icon {
-  background-color: #e9f2ff;
-  color: #007bff;
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background-color: #0d6efd; /* blu */
+  color: white;
   border-radius: 50%;
+  text-align: center;
+  line-height: 18px;
   font-weight: bold;
-  width: 20px;
-  height: 20px;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
+  font-size: 14px;
+}
+
+/* Ruaj stilimin e layout-it fleksibël dhe pozicionim relativ */
+.d-flex.justify-content-between.align-items-center.my-4.position-relative {
+  position: relative;
+  height: 50px; /* Për të ruajtur hapësirën e mjaftueshme */
+  gap: 20px;
+  flex-wrap: nowrap;
 }

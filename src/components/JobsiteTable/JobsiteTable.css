@@ -1,20 +1,54 @@
-/* src/components/JobsiteTable.css */
+.jobsite-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.jobsite-table th,
+.jobsite-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+  height: 36px; /* Lartësia e rreshtave */
+  box-sizing: border-box; /* Për të përfshirë padding dhe border brenda height */
+}
+
+.jobsite-name {
+  color: #1f4e79;  /* Ngjyra blu nga imazhi */
+  font-weight: 600;
+}
 
 .status-badge {
-  padding: 6px 12px;
+  padding: 6px 14px;
+  font-size: 15px;
   border-radius: 6px;
   font-weight: 500;
+  display: inline-block;
   color: white;
 }
 
+/* Ngjyrat sipas imazhit */
+.badge-onroad {
+  background-color: #F1E07D; /* Verdhe e zbehtë */
+  color: black;
+}
+
 .badge-completed {
-  background-color: #4caf50;
+  background-color: #63C255; /* Jeshile */
+  color: white;
 }
 
-.badge-hold {
-  background-color: #f44336;
+.badge-onhold {
+  background-color: #F44336; /* E kuqe */
+  color: white;
 }
 
-.badge-progress {
-  background-color: #8bc34a;
+
+/* Zebra stripes: rreshta tek gri, rreshta çift bardhë */
+
+.jobsite-table tbody tr:nth-child(odd) {
+  background-color: #f2f2f2;
+}
+
+.jobsite-table tbody tr:nth-child(even) {
+  background-color: white;
 }
