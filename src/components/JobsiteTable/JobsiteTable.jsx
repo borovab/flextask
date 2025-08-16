@@ -1,21 +1,27 @@
-// src/components/JobsiteTable.jsx
 import React from "react";
-import "./JobsiteTable.css"; // Importo CSS të jashtëm për stilet
+import { useNavigate } from "react-router";  // Sigurohu që është react-router-dom
+import "./JobsiteTable.css";
 
 function JobsiteTable({ jobSites }) {
+  const navigate = useNavigate();
+
   const getStatusClass = (status) => {
     switch (status) {
       case "Completed":
-        return "badge-completed"; // Jeshile
+        return "badge-completed";
       case "On Hold":
-        return "badge-onhold";    // Verdhe
+        return "badge-onhold";
       case "In Progress":
-        return "badge-inprogress"; // Blu
+        return "badge-inprogress";
       case "On Road":
-        return "badge-onroad";    // (nëse nevojitet)
+        return "badge-onroad";
       default:
-        return "badge-default";   // Gri
+        return "badge-default";
     }
+  };
+
+  const handleNameClick = (jobsiteId) => {
+    navigate(`/inventory/${jobsiteId}`);
   };
 
   return (
@@ -32,7 +38,12 @@ function JobsiteTable({ jobSites }) {
         {jobSites.map((site) => (
           <tr key={site.id}>
             <td></td>
-            <td className="jobsite-name">{site.name}</td>
+            <td
+              className="jobsite-name"
+              onClick={() => handleNameClick(site.id)}
+            >
+              {site.name}
+            </td>
             <td>
               <span className={`status-badge ${getStatusClass(site.status)}`}>
                 {site.status}

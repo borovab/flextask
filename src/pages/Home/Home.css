@@ -33,13 +33,7 @@
 }
 
 /* Stil për ikonën + në të djathtë */
-.create-button span.plus-icon {
-  font-size: 20px;
-  font-weight: bold;
-  line-height: 1;
-  user-select: none;
-  color: white;
-}
+
 
 .create-button:hover {
   background-color: #45a049; /* Një hije pak më e errët në hover */
@@ -55,6 +49,7 @@
   border-radius: 6px;
   outline: none;
   margin-left: 20px;
+  margin-top: 8px;
   flex-shrink: 0; /* Mos e ngushto inputin */
 }
 

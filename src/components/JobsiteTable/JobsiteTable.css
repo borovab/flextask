@@ -15,6 +15,7 @@
 .jobsite-name {
   color: #1f4e79;  /* Ngjyra blu nga imazhi */
   font-weight: 600;
+  cursor: pointer;
 }
 
 .status-badge {

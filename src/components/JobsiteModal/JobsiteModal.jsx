@@ -1,97 +1,91 @@
-// src/components/JobsiteModal.jsx
 import React, { useState } from "react";
-import {
-  Modal,
-  Button,
-  Form,
-  Row,
-  Col,
-  Alert
-} from "react-bootstrap";
+import "./JobsiteModal.css";
 
-function JobsiteModal({ closeModal, setJobSites }) {
+function JobsiteModal({ closeModal, addJobsite }) {
   const [name, setName] = useState("");
   const [status, setStatus] = useState("");
   const [category, setCategory] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSave = () => {
-    if (!name || !status) return;
-    setJobSites(prev => [
-      ...prev,
-      {
-        id: Date.now(),
-        name,
-        status
-      }
-    ]);
-    closeModal();
+  const handleSave = async () => {
+    if (!name || !status) return alert("Please fill all required fields!");
+
+    setLoading(true);
+
+    // Përgatit të dhënat për Supabase
+    const newJobsite = {
+      name,
+      status,
+      category,
+    };
+
+    const success = await addJobsite(newJobsite);
+
+    setLoading(false);
+
+    if (success) {
+      closeModal();
+    } else {
+      alert("Error adding jobsite. Try again.");
+    }
   };
 
   return (
-    <Modal show onHide={closeModal} centered backdrop="static">
-      <Modal.Header closeButton>
-        <Modal.Title>Title</Modal.Title>
-      </Modal.Header>
+    <div className="custom-modal-overlay">
+      <div className="custom-modal">
+        <div className="custom-modal-header">
+          <h5>Title</h5>
+          <button className="close-btn" onClick={closeModal}>
+            &times;
+          </button>
+        </div>
 
-      <Modal.Body>
-        <Alert variant="info">
-          Informative piece of text that can be used regarding this modal.
-        </Alert>
+        <div className="custom-modal-info">
+          <span className="info-icon">i</span>
+          <span>Informative piece of text that can be used regarding this modal.</span>
+        </div>
 
-        <Form>
-          <Form.Group controlId="formJobsiteName" className="mb-3">
-            <Form.Label>Name</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Type the jobsite's name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </Form.Group>
+        <div className="form-group">
+          <label>Name</label>
+          <input
+            type="text"
+            placeholder="Type the jobsite's name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
 
-          <Row>
-            <Col md={6}>
-              <Form.Group controlId="formCategory" className="mb-3">
-                <Form.Label>Category Included</Form.Label>
-                <Form.Select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                >
-                  <option value="">Select</option>
-                  <option value="Category A">Category A</option>
-                  <option value="Category B">Category B</option>
-                </Form.Select>
-              </Form.Group>
-            </Col>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Category Included</label>
+            <select value={category} onChange={(e) => setCategory(e.target.value)}>
+              <option value="">Select</option>
+              <option value="Category A">Category A</option>
+              <option value="Category B">Category B</option>
+            </select>
+          </div>
 
-            <Col md={6}>
-              <Form.Group controlId="formStatus" className="mb-3">
-                <Form.Label>Status</Form.Label>
-                <Form.Select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                >
-                  <option value="">Select one</option>
-                  <option value="On Road">On Road</option>
-                  <option value="Completed">Completed</option>
-                  <option value="On Hold">On Hold</option>
-                  <option value="In Progress">In Progress</option>
-                </Form.Select>
-              </Form.Group>
-            </Col>
-          </Row>
-        </Form>
-      </Modal.Body>
+          <div className="form-group">
+            <label>Status</label>
+            <select value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="">Select one</option>
+              <option value="On Road">On Road</option>
+              <option value="Completed">Completed</option>
+              <option value="On Hold">On Hold</option>
+            </select>
+          </div>
+        </div>
 
-      <Modal.Footer>
-        <Button variant="danger" onClick={closeModal}>
-          Cancel Changes ❌
-        </Button>
-        <Button variant="success" onClick={handleSave}>
-          Save Changes ✅
-        </Button>
-      </Modal.Footer>
-    </Modal>
+        <div className="modal-footer">
+          <button className="btn cancel" onClick={closeModal}>
+            Cancel Changes <span>❌</span>
+          </button>
+          <button className="btn save" onClick={handleSave} disabled={loading}>
+            {loading ? "Saving..." : "Save Changes"} <span>✅</span>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
