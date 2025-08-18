@@ -9,13 +9,24 @@ function HeaderCards({ jobSites }) {
   return (
     <div className="header-cards">
       <div className="card on-road">
-        {countStatus("On Road")} On Road
+        <div className="info">
+          <h4>{countStatus("On Road")}</h4>
+          <p>On Road</p>
+        </div>
       </div>
+
       <div className="card completed">
-        {countStatus("Completed")} Completed
+        <div className="info">
+          <h4>{countStatus("Completed")}</h4>
+          <p>Completed</p>
+        </div>
       </div>
+
       <div className="card on-hold">
-        {countStatus("On Hold")} On Hold
+        <div className="info">
+          <h4>{countStatus("On Hold")}</h4>
+          <p>On Hold</p>
+        </div>
       </div>
     </div>
   );

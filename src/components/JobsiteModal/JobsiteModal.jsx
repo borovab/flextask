@@ -34,7 +34,7 @@ function JobsiteModal({ closeModal, addJobsite }) {
     <div className="custom-modal-overlay">
       <div className="custom-modal">
         <div className="custom-modal-header">
-          <h5>Title</h5>
+          <h5>Add a new Jobsite</h5>
           <button className="close-btn" onClick={closeModal}>
             &times;
           </button>
@@ -42,7 +42,7 @@ function JobsiteModal({ closeModal, addJobsite }) {
 
         <div className="custom-modal-info">
           <span className="info-icon">i</span>
-          <span>Informative piece of text that can be used regarding this modal.</span>
+<span>Here you can create a new jobsite with its name, category and current status.</span>
         </div>
 
         <div className="form-group">
@@ -78,10 +78,10 @@ function JobsiteModal({ closeModal, addJobsite }) {
 
         <div className="modal-footer">
           <button className="btn cancel" onClick={closeModal}>
-            Cancel Changes <span>❌</span>
+            Cancel Changes
           </button>
           <button className="btn save" onClick={handleSave} disabled={loading}>
-            {loading ? "Saving..." : "Save Changes"} <span>✅</span>
+            {loading ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </div>

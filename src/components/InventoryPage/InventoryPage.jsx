@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
-import { supabase } from "../../supabase/supabaseClient"; 
+import { supabase } from "../../supabase/supabaseClient";
 import "./InventoryPage.css";
 
 function InventoryPage() {
@@ -8,123 +8,478 @@ function InventoryPage() {
   const navigate = useNavigate();
 
   const [jobsiteName, setJobsiteName] = useState("");
-  const [selectedService, setSelectedService] = useState(null); // <-- shtimi i këtij state
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [items, setItems] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
+  const [formData, setFormData] = useState({
+    item_code: "",
+    quantity: "",
+    description: "",
+    notes: "",
+  });
+
+  const [editingItem, setEditingItem] = useState(null);
+
+  // Fetch jobsite name
   useEffect(() => {
     const fetchJobsite = async () => {
       if (!jobsiteId) return;
-      const { data, error } = await supabase
-        .from("jobsites")
-        .select("name")
-        .eq("id", jobsiteId)
-        .single();
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("jobsites")
+          .select("name")
+          .eq("id", jobsiteId)
+          .single();
 
-      if (error) {
-        console.error("Error fetching jobsite:", error);
-      } else {
+        if (error) throw error;
         setJobsiteName(data.name);
+      } catch (error) {
+        console.error("Error fetching jobsite:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchJobsite();
   }, [jobsiteId]);
 
-  const handleDelete = async () => {
-    const confirmDelete = window.confirm(`Are you sure you want to delete "${jobsiteName}"?`);
+  // Fetch items when category is selected
+  useEffect(() => {
+    const fetchItems = async () => {
+      if (!selectedCategory) return;
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("inventory_items")
+          .select("*")
+          .eq("jobsite_id", jobsiteId)
+          .eq("category", selectedCategory);
+
+        if (error) throw error;
+        setItems(data);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchItems();
+  }, [selectedCategory, jobsiteId]);
+
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveItem = async () => {
+    if (!formData.item_code || !formData.quantity) {
+      alert("Please fill in required fields (Item and Quantity)");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      if (editingItem) {
+        // Update existing item
+        const { error } = await supabase
+          .from("inventory_items")
+          .update({
+            item_code: formData.item_code,
+            quantity: parseInt(formData.quantity),
+            description: formData.description,
+            notes: formData.notes,
+          })
+          .eq("id", editingItem.id);
+
+        if (error) throw error;
+      } else {
+        // Insert new item
+        const { error } = await supabase.from("inventory_items").insert([
+          {
+            jobsite_id: jobsiteId,
+            category: selectedCategory,
+            item_code: formData.item_code,
+            quantity: parseInt(formData.quantity),
+            description: formData.description,
+            notes: formData.notes,
+          },
+        ]);
+
+        if (error) throw error;
+      }
+
+      // Reset form
+      setFormData({ item_code: "", quantity: "", description: "", notes: "" });
+      setEditingItem(null);
+      setShowModal(false);
+
+      // Re-fetch items
+      const { data } = await supabase
+        .from("inventory_items")
+        .select("*")
+        .eq("jobsite_id", jobsiteId)
+        .eq("category", selectedCategory);
+      setItems(data);
+    } catch (error) {
+      alert("Error saving item: " + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEditItem = (item) => {
+    setEditingItem(item);
+    setFormData({
+      item_code: item.item_code,
+      quantity: item.quantity,
+      description: item.description || "",
+      notes: item.notes || "",
+    });
+    setShowModal(true);
+  };
+
+  const handleDeleteItem = async (itemId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this item?");
     if (!confirmDelete) return;
 
-    const { error } = await supabase
-      .from("jobsites")
-      .delete()
-      .eq("id", jobsiteId);
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from("inventory_items")
+        .delete()
+        .eq("id", itemId);
 
-    if (error) {
+      if (error) throw error;
+
+      setItems((prev) => prev.filter((item) => item.id !== itemId));
+    } catch (error) {
+      alert("Failed to delete item: " + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete "${jobsiteName}" and all its inventory items? This action cannot be undone.`
+    );
+    if (!confirmDelete) return;
+
+    setIsLoading(true);
+    try {
+      // First delete all inventory items
+      const { error: itemsError } = await supabase
+        .from("inventory_items")
+        .delete()
+        .eq("jobsite_id", jobsiteId);
+
+      if (itemsError) throw itemsError;
+
+      // Then delete the jobsite
+      const { error: jobsiteError } = await supabase
+        .from("jobsites")
+        .delete()
+        .eq("id", jobsiteId);
+
+      if (jobsiteError) throw jobsiteError;
+
+      navigate("/jobsites");
+    } catch (error) {
       alert("Failed to delete jobsite: " + error.message);
-      console.error(error);
-    } else {
-      alert(`Jobsite "${jobsiteName}" deleted successfully.`);
-      navigate(-1); // Shko prapa pasi fshihet
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="inventory-wrapper">
-      <div className="card-container">
-        {/* Sidebar */}
-        <div className="sidebar-card">
-          <h5 className="sidebar-title">{jobsiteName || "Loading..."}</h5>
-          <button className="sidebar-btn" onClick={() => setSelectedService("Sidewalk Shed")}>
+    <div className="inventory-container">
+      {/* Sidebar Navigation */}
+      <div className="inventory-sidebar">
+        <div className="sidebar-header">
+          <h2 className="jobsite-title">{jobsiteName || "Loading..."}</h2>
+          <div className="jobsite-status">
+            <span className="status-indicator active"></span>
+            <span>Active</span>
+          </div>
+        </div>
+
+        <nav className="category-nav">
+          <button
+            className={`category-btn ${
+              selectedCategory === "Sidewalk Shed" ? "active" : ""
+            }`}
+            onClick={() => setSelectedCategory("Sidewalk Shed")}
+          >
             Sidewalk Shed
           </button>
-          <button className="sidebar-btn" onClick={() => setSelectedService("Scaffold")}>
+          <button
+            className={`category-btn ${
+              selectedCategory === "Scaffold" ? "active" : ""
+            }`}
+            onClick={() => setSelectedCategory("Scaffold")}
+          >
             Scaffold
           </button>
+        </nav>
 
-          <button className="delete-btn" onClick={handleDelete} style={{backgroundColor: "red", color: "white", marginTop: "10px"}}>
-            Delete Jobsite
+        <div className="sidebar-footer">
+          <button
+            className="delete-btn"
+            onClick={handleDelete}
+            disabled={isLoading}
+          >
+            {isLoading ? "Deleting..." : "Delete Jobsite"}
           </button>
-
-          <button className="go-back-btn" onClick={() => navigate(-1)}>
-            Go Back <span className="arrow">←</span>
+          <button
+            className="back-btn"
+            onClick={() => navigate(-1)}
+            disabled={isLoading}
+          >
+            ← Back to Jobsites
           </button>
-        </div>
-
-        {/* Content Area */}
-        <div className="content-card">
-          {!selectedService ? (
-            <div className="no-service">
-              <img
-                src="https://cdn-icons-png.flaticon.com/512/679/679720.png"
-                alt="No service"
-                className="no-service-img"
-              />
-              <h6>No Service Selected</h6>
-              <p>Please select a service on your left to proceed.</p>
-            </div>
-          ) : (
-            // Këtu mund të vendosësh listën që do shfaqet për secilin service
-            <div>
-              <h4>{selectedService}</h4>
-              {/* Shembull tabela për "Sidewalk Shed" */}
-             {selectedService === "Sidewalk Shed" && (
-  <div className="table-container">
-    <table className="inventory-table">
-      <thead>
-        <tr>
-          <th>Nr.</th>
-          <th>Item</th>
-          <th>Quantity</th>
-          <th>Description</th>
-          <th>Notes</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>1</td><td>G42295</td><td>10</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td></tr>
-        <tr><td>2</td><td>M721</td><td>83</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td></tr>
-        <tr><td>3</td><td>M94796</td><td>31</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td></tr>
-        <tr><td>4</td><td>S25907</td><td>47</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td></tr>
-        <tr><td>5</td><td>A68446</td><td>52</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td></tr>
-        <tr><td>6</td><td>F3786</td><td>10</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td></tr>
-        <tr><td>7</td><td>R69895</td><td>30</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td></tr>
-        <tr><td>8</td><td>A29259</td><td>32</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td></tr>
-        <tr><td>9</td><td>A41878</td><td>16</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td></tr>
-        <tr><td>10</td><td>A37244</td><td>13</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td></tr>
-        <tr><td>11</td><td>M89319</td><td>10</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td><td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td></tr>
-      </tbody>
-    </table>
-  </div>
-)}
-              {/* Mund të shtosh për Scaffold një përmbajtje tjetër */}
-              {selectedService === "Scaffold" && (
-                <div>
-                  {/* Përmbajtje për Scaffold */}
-                  <p>Kjo është lista për Scaffold...</p>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
+
+      {/* Main Content Area */}
+      <div className="inventory-content">
+        {selectedCategory ? (
+          <>
+            <div className="content-header">
+              <h2 className="content-title">
+                {selectedCategory} Inventory
+                <span className="item-count">{items.length} items</span>
+              </h2>
+              <button
+                className="add-item-btn"
+                onClick={() => {
+                  setEditingItem(null);
+                  setFormData({ item_code: "", quantity: "", description: "", notes: "" });
+                  setShowModal(true);
+                }}
+                disabled={isLoading}
+              >
+                <span className="btn-icon">+</span> Add New Item
+              </button>
+            </div>
+
+            {isLoading ? (
+              <div className="loading-state">
+                <div className="spinner"></div>
+                <p>Loading inventory items...</p>
+              </div>
+            ) : items.length > 0 ? (
+              <div className="inventory-table-container">
+                <table className="inventory-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Item Code</th>
+                      <th>Quantity</th>
+                      <th>Description</th>
+                      <th>Notes</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item, index) => (
+                      <tr key={item.id}>
+                        <td>{index + 1}</td>
+                        <td className="item-code">{item.item_code}</td>
+                        <td>
+                          <span
+                            className={`quantity-badge ${
+                              item.quantity > 0 ? "in-stock" : "out-of-stock"
+                            }`}
+                          >
+                            {item.quantity}
+                          </span>
+                        </td>
+                        <td className="item-description">
+                          {item.description || "-"}
+                        </td>
+                        <td className="item-notes">{item.notes || "-"}</td>
+                        <td>
+                          <div className="action-buttons">
+                            <button
+                              className="edit-btn"
+                              onClick={() => handleEditItem(item)}
+                              disabled={isLoading}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="delete-btn"
+                              onClick={() => handleDeleteItem(item.id)}
+                              disabled={isLoading}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="empty-state">
+                <h3>No Items Found</h3>
+                <p>This category doesn't have any inventory items yet.</p>
+                <button
+                  className="add-item-btn"
+                  onClick={() => {
+                    setEditingItem(null);
+                    setFormData({ item_code: "", quantity: "", description: "", notes: "" });
+                    setShowModal(true);
+                  }}
+                  disabled={isLoading}
+                >
+                  <span className="btn-icon">+</span> Add Your First Item
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="welcome-state">
+            <h3>Welcome to {jobsiteName}</h3>
+            <p>
+              Please select a category from the sidebar to view or manage
+              inventory.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Add/Edit Item Modal */}
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-container modal--sheet">
+            <div className="modal-header">
+              <h3>{editingItem ? "Edit Item" : "Add New Item"}</h3>
+              <button
+                className="modal-close-btn"
+                onClick={() => {
+                  setShowModal(false);
+                  setEditingItem(null);
+                }}
+                disabled={isLoading}
+                aria-label="Close"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {/* Info row */}
+              <div className="modal-info">
+                <div className="modal-info__icon" aria-hidden>
+                  i
+                </div>
+                <div className="modal-info__text">
+                  {editingItem
+                    ? "You can edit this inventory item here."
+                    : "Fill out the form to add a new inventory item."}
+                </div>
+              </div>
+
+              {/* Item / Quantity */}
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="item_code">Item</label>
+                  <input
+                    id="item_code"
+                    name="item_code"
+                    type="text"
+                    value={formData.item_code}
+                    onChange={handleFormChange}
+                    placeholder="Search & Select item"
+                    required
+                    autoComplete="off"
+                    className="field--soft"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="quantity">Quantity</label>
+                  <input
+                    id="quantity"
+                    name="quantity"
+                    type="number"
+                    min="0"
+                    value={formData.quantity}
+                    onChange={handleFormChange}
+                    placeholder="Set Quantity"
+                    required
+                    className="field--soft"
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="form-group">
+                <label htmlFor="description">Description</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  rows="3"
+                  value={formData.description}
+                  onChange={handleFormChange}
+                  placeholder="Type the description..."
+                  className="field--soft"
+                />
+              </div>
+
+              {/* Notes */}
+              <div className="form-group">
+                <label htmlFor="notes">Notes</label>
+                <textarea
+                  id="notes"
+                  name="notes"
+                  rows="2"
+                  value={formData.notes}
+                  onChange={handleFormChange}
+                  placeholder="Type a note..."
+                  className="field--soft"
+                />
+              </div>
+            </div>
+
+            <div className="modal-footer modal-footer--spaced">
+              <button
+                className="cancel-btn"
+                onClick={() => {
+                  setShowModal(false);
+                  setEditingItem(null);
+                }}
+                disabled={isLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className="save-btn save-btn--check"
+                onClick={handleSaveItem}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <span className="spinner"></span>{" "}
+                    {editingItem ? "Updating..." : "Saving..."}
+                  </>
+                ) : (
+                  <>
+                    {editingItem ? "Update Item" : "Save Changes"}{" "}
+                    <span className="checkmark" aria-hidden>✓</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

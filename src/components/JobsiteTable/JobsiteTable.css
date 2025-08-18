@@ -1,55 +1,78 @@
 .jobsite-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0 10px; /* hapësirë mes rreshtave për efekt “cards” */
 }
 
-.jobsite-table th,
-.jobsite-table td {
-  border: 1px solid #ddd;
-  padding: 10px;
+.jobsite-table thead th {
   text-align: left;
-  height: 36px; /* Lartësia e rreshtave */
-  box-sizing: border-box; /* Për të përfshirë padding dhe border brenda height */
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  padding: 12px;
+}
+
+.jobsite-table tbody tr {
+  background-color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.jobsite-table tbody tr:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.jobsite-table td {
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #334155;
 }
 
 .jobsite-name {
-  color: #1f4e79;  /* Ngjyra blu nga imazhi */
+  color: #2563eb;  /* blu e gjallë */
   font-weight: 600;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
+.jobsite-name:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+/* Badges më “soft” dhe të rrumbullakëta */
 .status-badge {
   padding: 6px 14px;
-  font-size: 15px;
-  border-radius: 6px;
+  font-size: 13px;
+  border-radius: 9999px;
   font-weight: 500;
   display: inline-block;
-  color: white;
 }
 
-/* Ngjyrat sipas imazhit */
 .badge-onroad {
-  background-color: #F1E07D; /* Verdhe e zbehtë */
-  color: black;
+  background-color: #fef9c3;
+  color: #92400e;
 }
 
 .badge-completed {
-  background-color: #63C255; /* Jeshile */
-  color: white;
+  background-color: #dcfce7;
+  color: #166534;
 }
 
 .badge-onhold {
-  background-color: #F44336; /* E kuqe */
-  color: white;
+  background-color: #fee2e2;
+  color: #991b1b;
 }
 
-
-/* Zebra stripes: rreshta tek gri, rreshta çift bardhë */
-
-.jobsite-table tbody tr:nth-child(odd) {
-  background-color: #f2f2f2;
+.badge-inprogress {
+  background-color: #dbeafe;
+  color: #1e40af;
 }
 
-.jobsite-table tbody tr:nth-child(even) {
-  background-color: white;
+.badge-default {
+  background-color: #e2e8f0;
+  color: #475569;
 }

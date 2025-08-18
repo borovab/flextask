@@ -10,7 +10,7 @@ function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [jobSites, setJobSites] = useState([]);
 
-  // Merr jobsite data nga supabase
+  // Fetch jobsite data from supabase
   const fetchJobSites = async () => {
     const { data, error } = await supabase.from("jobsites").select("*");
     if (error) {
@@ -29,15 +29,14 @@ function Home() {
     site.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Funksion për të shtuar jobsite në supabase
+  // Add jobsite to supabase
   const addJobsite = async (newJobsite) => {
     const { data, error } = await supabase.from("jobsites").insert([newJobsite]);
     if (error) {
       console.error("Error adding jobsite:", error);
       return false;
     } else {
-      // Pas shtimit, rifreskojmë listën
-      fetchJobSites();
+      fetchJobSites(); // Refresh after insert
       return true;
     }
   };
@@ -48,16 +47,20 @@ function Home() {
 
       <div className="d-flex justify-content-between align-items-center my-4 position-relative">
         <div>
-          <h6 className="mb-2 fw-bold">Title</h6>
+          <h6 className="mb-2 fw-bold">Jobsites Overview</h6>
           <div className="info-box">
             <span className="info-icon">i</span>
-            <span>Informative piece of text that can be used regarding this modal.</span>
+            <span>
+              You currently have <strong>{jobSites.length}</strong> jobsites in the system.
+              Use the search bar to quickly find a jobsite by name, or click{" "}
+              <strong>Create</strong> to add a new one.
+            </span>
           </div>
         </div>
 
         <input
           type="text"
-          placeholder="Search a driver"
+          placeholder="Search a jobsite"
           className="search-input"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
