@@ -201,10 +201,7 @@ function InventoryPage() {
       <div className="inventory-sidebar">
         <div className="sidebar-header">
           <h2 className="jobsite-title">{jobsiteName || "Loading..."}</h2>
-          <div className="jobsite-status">
-            <span className="status-indicator active"></span>
-            <span>Active</span>
-          </div>
+        
         </div>
 
         <nav className="category-nav">
