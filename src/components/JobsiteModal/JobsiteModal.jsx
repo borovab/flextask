@@ -61,7 +61,7 @@ function JobsiteModal({ closeModal, addJobsite }) {
             <select value={category} onChange={(e) => setCategory(e.target.value)}>
               <option value="">Select</option>
               <option value="Category A">Category A</option>
-              <option value="Category B">Category B</option>
+              <option value="Category B">Category Bb</option>
             </select>
           </div>
 
